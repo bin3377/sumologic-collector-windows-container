@@ -1,5 +1,4 @@
 param([string]$AccessID, [string]$AccessKey)
-
 if ($env:SUMO_ACCESS_ID_FILE -and (Test-Path $env:SUMO_ACCESS_ID_FILE -PathType Leaf)) {
   $env:SUMO_ACCESS_ID = Get-Content $env:SUMO_ACCESS_ID_FILE
 }
@@ -45,9 +44,9 @@ function New-UserProperties() {
 
   if ($env:SUMO_SYNC_SOURCES -eq 'true') {
     $env:SUMO_SYNC_SOURCES = $env:SUMO_SOURCES_JSON
-    $env:SUMO_SYNC_SOURCES = $null
+    $env:SUMO_SOURCES_JSON = $null
   } else {
-    $SUMO_SYNC_SOURCES = $null
+    $env:SUMO_SYNC_SOURCES = $null
   }
 
   # Supported user.properties configuration parameters
@@ -71,7 +70,7 @@ function New-UserProperties() {
     "SUMO_JAVA_MEMORY_MAX"="wrapper.java.maxmemory"
   }
 
-  $target= "config/user.properties"
+  $target= "c:\collector\config\user.properties"
   Write-Output "INFO: Generating options in $target"
   if (Test-Path $target) {
     Remove-Item $target -Force
@@ -83,9 +82,10 @@ function New-UserProperties() {
     if ($val) {
       $line = $SUPPORTED_OPTIONS[$key] + " = " + $val
       Write-Output "    $line"
-      Add-Content -Value $line -Path $target
+      Add-Content -Force -Value $line -Path $target
     }
   }
+  Add-Content -Force -Value "wrapper.debug=TRUE" -Path $target
 }
 
 function Convert-Template([string]$FromPath, [string]$ToPath) {
@@ -103,7 +103,7 @@ function Convert-Template([string]$FromPath, [string]$ToPath) {
       Write-Output "    FROM[$line]"
       Write-Output "      TO[$out]"
     }
-    Add-Content -Value $out -Path $ToPath
+    Add-Content -Force -Value $out -Path $ToPath
   }
 }
 
@@ -111,7 +111,7 @@ if ($env:SUMO_GENERATE_USER_PROPERTIES) {
   New-UserProperties
 }
 
-Add-Content -Value "docker.apiVersion=1.24" -Path "config/collector.properties"
+Add-Content -Force -Value "docker.apiVersion=1.24" -Path "c:\collector\config\collector.properties"
 
-Start-Process -Wait -FilePath "c:\collector\collector.bat" -ArgumentList "console"
-
+& c:\collector\wrapper.exe -c c:\collector\config\wrapper.conf 
+Get-Content -Wait c:\collector\logs\collector.log

@@ -1,12 +1,18 @@
-FROM microsoft/windowsservercore
+FROM microsoft/windowsservercore-insider    
 
-RUN powershell -Command `
-    (New-Object System.Net.WebClient).DownloadFile('https://collectors.sumologic.com/rest/download/win64', 'C:\collector.exe') ; `
-    Start-Process -filepath C:\collector.exe -wait -argumentlist "-q,-dir,C:\collector,-VskipRegistration=true,-Dinstall4j.detailStdout=true,-Dinstall4j.logToStderr=true,-Dinstall4j.debug=true" ; `
-    del C:\collector.exe
+ENV exe "https://collectors.sumologic.com/rest/download/win64"
 
-WORKDIR C:\collector
+SHELL ["powershell", "-Command"]
 
-COPY run.ps1 C:\collector\run.ps1
-COPY sumo-sources.json C:\collector\sumo-sources.json
-ENTRYPOINT ["powershell", "c:\collector\run.ps1"]
+WORKDIR /collector
+
+RUN Invoke-WebRequest -Uri $env:exe -OutFile collector.exe
+RUN Start-Process -Wait -FilePath "collector.exe" \
+  -ArgumentList "'-q', '-dir', 'C:\collector', '-VskipRegistration=true', '-Vsumo.accessid=x', '-Vsumo.accesskey=y', '-Dinstall4j.detailStdout=true', '-Dinstall4j.logToStderr=true', '-Dinstall4j.debug=true'"
+RUN Remove-Item -Force collector.exe
+
+COPY run.ps1 .
+
+COPY sumo-sources.json .
+
+ENTRYPOINT ["powershell", "-f", "./run.ps1"]
