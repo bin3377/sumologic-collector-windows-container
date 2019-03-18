@@ -6,7 +6,7 @@
       "category": "docker",
       "allContainers": true,
       "collectEvents": true,
-      "uri": "unix:///var/run/docker.sock",
+      "uri": "npipe:////./pipe/docker_engine",
       "specifiedContainers": [],
       "multilineProcessingEnabled": false,
       "sourceType": "DockerLog"
@@ -17,7 +17,7 @@
       "automaticDateParsing": true,
       "forceTimeZone": false,
       "cutoffTimestamp": 0,
-      "uri": "unix:///var/run/docker.sock",
+      "uri": "npipe:////./pipe/docker_engine",
       "specifiedContainers": [],
       "allContainers": true,
       "multilineProcessingEnabled": false,
